@@ -1,2 +1,0 @@
-# Schwerpunktfachwoche
- Messung Gewicht Erde
