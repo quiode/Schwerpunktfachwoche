@@ -8,6 +8,8 @@
 
 #define MAX_ARRAY_SIZE 255
 
+#define SENSITIVITY 2.5
+
 const String SENSOR_NAMES[2] = {"ABOVE", "BELOW"};
 int distances_top[MAX_ARRAY_SIZE];
 int distances_bottom[MAX_ARRAY_SIZE];
@@ -80,7 +82,7 @@ boolean pass_detection(String sensor_name)
     Serial.println(distances_top[index - 1]);
     */
 
-    if (average + 5 < distances_top[index - 1] || average - 5 > distances_top[index - 1])
+    if (average + SENSITIVITY < distances_top[index - 1] || average - SENSITIVITY > distances_top[index - 1])
     {
       return true;
     }
@@ -120,7 +122,7 @@ boolean pass_detection(String sensor_name)
     Serial.println(distances_bottom[index - 1]);
     */
 
-    if (average + 5 < distances_bottom[index - 1] || average - 5 > distances_bottom[index - 1])
+    if (average + SENSITIVITY < distances_bottom[index - 1] || average - SENSITIVITY > distances_bottom[index - 1])
     {
       return true;
     }
