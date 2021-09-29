@@ -9,12 +9,14 @@
 #define MAX_ARRAY_SIZE 255
 
 const String SENSOR_NAMES[2] = {"ABOVE", "BELOW"};
-long distances[MAX_ARRAY_SIZE];
-int last_index = 0;
-long time_start; // TODO: implement math to calculate time difference
-long time_end;
+int distances_top[MAX_ARRAY_SIZE];
+int distances_bottom[MAX_ARRAY_SIZE];
+int last_index_t = 0;
+int last_index_b = 0;
+long time_start = 0;
+long time_end = 0;
 
-long get_distance(String sensor_name)
+int get_distance(String sensor_name)
 {
   if (sensor_name == SENSOR_NAMES[0])
   {
@@ -24,7 +26,7 @@ long get_distance(String sensor_name)
     delay(10);
     digitalWrite(TRIGGER_ABOVE, LOW);
     long dauer = pulseIn(ECHO_ABOVE, HIGH);
-    long distance = (dauer / 2) * 0.03432;
+    int distance = (dauer / 2) * 0.03432;
     return distance;
   }
   else
@@ -35,38 +37,101 @@ long get_distance(String sensor_name)
     delay(10);
     digitalWrite(TRIGGER_BELOW, LOW);
     long dauer = pulseIn(ECHO_BELOW, HIGH);
-    long distance = (dauer / 2) * 0.03432;
-    return distance;
+    int distance_b = (dauer / 2) * 0.03432;
+    return distance_b;
   }
 }
 
 boolean pass_detection(String sensor_name)
 {
   // TODO: Different distances arrays for different sensors
-  distances[last_index++] = get_distance(sensor_name);
 
-  long sum = 0;
-  short index = MAX_ARRAY_SIZE;
-  for (int i = 0; i < MAX_ARRAY_SIZE; i++)
+  if (sensor_name == SENSOR_NAMES[0])
   {
-    sum += distances[i];
-    if (distances[i] == 0 && distances[i + 1] == 0)
+    if (last_index_t == MAX_ARRAY_SIZE)
     {
-      index = i;
-      break;
+      last_index_t = 0;
+    }
+    distances_top[last_index_t++] = get_distance(sensor_name);
+
+    long sum = 0;
+    short index = MAX_ARRAY_SIZE;
+    for (int i = 0; i < MAX_ARRAY_SIZE; i++)
+    {
+      sum += distances_top[i];
+      if (distances_top[i] == 0 && distances_top[i + 1] == 0)
+      {
+        index = i;
+        break;
+      }
+    }
+    /*
+    Serial.print("Sum: ");
+    Serial.println(sum);
+    Serial.print("Index: ");
+    Serial.println(index);
+    */
+    int average = sum / index;
+
+    /*
+    Serial.println("Average: ");
+    Serial.println(average);
+    Serial.print("Distance: ");
+    Serial.println(distances_top[index - 1]);
+    */
+
+    if (average + 5 < distances_top[index - 1] || average - 5 > distances_top[index - 1])
+    {
+      return true;
     }
   }
-  float average = sum / index;
-
-  Serial.println(average);
-  Serial.println(distances[index - 1]);
-
-  if (average + 5 < distances[index - 1] || average - 5 > distances[index - 1])
+  else if (sensor_name == SENSOR_NAMES[1])
   {
-    return true;
-  }
+    if (last_index_b == MAX_ARRAY_SIZE)
+    {
+      last_index_b = 0;
+    }
+    distances_bottom[last_index_b++] = get_distance(sensor_name);
 
+    long sum = 0;
+    short index = MAX_ARRAY_SIZE;
+    for (int i = 0; i < MAX_ARRAY_SIZE; i++)
+    {
+      sum += distances_bottom[i];
+      //Serial.println(distances_bottom[i]);
+      if (distances_bottom[i] == 0 && distances_bottom[i + 1] == 0)
+      {
+        index = i;
+        break;
+      }
+    }
+    /*
+    Serial.print("Sum: ");
+    Serial.println(sum);
+    Serial.print("Index: ");
+    Serial.println(index);
+    */
+    int average = sum / index;
+
+    /*
+    Serial.print("Average: ");
+    Serial.println(average);
+    Serial.print("Distance: ");
+    Serial.println(distances_bottom[index - 1]);
+    */
+
+    if (average + 5 < distances_bottom[index - 1] || average - 5 > distances_bottom[index - 1])
+    {
+      return true;
+    }
+  }
   return false;
+}
+
+long get_time_difference(long timestamp_1, long timestamp_2)
+{
+  return timestamp_1 - timestamp_2;
+  // TODO: implement math to calculate time (in milliseconds) difference
 }
 
 void setup()
@@ -74,11 +139,11 @@ void setup()
   // clears the array
   for (int i = 0; i < MAX_ARRAY_SIZE; i++)
   {
-    distances[i] = 0;
+    distances_top[i] = 0;
+    distances_bottom[i] = 0;
   }
 
   Serial.begin(9600);
-  // put your setup code here, to run once:
   pinMode(TRIGGER_ABOVE, OUTPUT); // Trigger-Pin ist ein Ausgang
   pinMode(ECHO_ABOVE, INPUT);     // Echo-Pin ist ein Eingang
   pinMode(TRIGGER_BELOW, OUTPUT); // Trigger-Pin ist ein Ausgang
@@ -87,8 +152,19 @@ void setup()
 
 void loop()
 {
-  delay(2000);
-  Serial.println("-------------------------------");
-  Serial.println(pass_detection(SENSOR_NAMES[0]));
-  // put your main code here, to run repeatedly:
+  if (pass_detection(SENSOR_NAMES[0]))
+  {
+    time_start = millis();
+    Serial.println("Pass detected 1");
+  }
+  if (pass_detection(SENSOR_NAMES[1]))
+  {
+    time_end = millis();
+    Serial.println("Pass detected 2");
+  }
+  if (time_start != 0 && time_end != 0)
+  {
+    Serial.print("Time difference: ");
+    Serial.println(get_time_difference(time_end, time_start));
+  }
 }
