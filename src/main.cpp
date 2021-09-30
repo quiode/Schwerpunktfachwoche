@@ -8,7 +8,7 @@
 
 #define MAX_ARRAY_SIZE 200
 
-#define SENSITIVITY 1.5
+#define SENSITIVITY 1
 
 #define SENSOR_TOP true
 #define SENSOR_BOTTOM false
@@ -107,22 +107,6 @@ long get_time_difference(long timestamp_1, long timestamp_2)
   return timestamp_1 - timestamp_2;
 }
 
-void setup()
-{
-  // clears the array
-  for (int i = 0; i < MAX_ARRAY_SIZE; i++)
-  {
-    distances_top[i] = 0;
-    distances_bottom[i] = 0;
-  }
-
-  Serial.begin(9600);
-  pinMode(TRIGGER_ABOVE, OUTPUT); // Trigger-Pin ist ein Ausgang
-  pinMode(ECHO_ABOVE, INPUT);     // Echo-Pin ist ein Eingang
-  pinMode(TRIGGER_BELOW, OUTPUT); // Trigger-Pin ist ein Ausgang
-  pinMode(ECHO_BELOW, INPUT);     // Echo-Pin ist ein Eingang
-}
-
 void measure()
 {
   if (pass_detection(SENSOR_TOP) && time_start == 0)
@@ -149,6 +133,24 @@ void debug()
   Serial.println("Sensor 2:");
   Serial.println(pass_detection(SENSOR_BOTTOM));
   delay(2500);
+}
+
+void setup()
+{
+  // clears the array
+  for (int i = 0; i < MAX_ARRAY_SIZE; i++)
+  {
+    distances_top[i] = 0;
+    distances_bottom[i] = 0;
+  }
+
+  Serial.begin(9600);
+  pinMode(TRIGGER_ABOVE, OUTPUT); // Trigger-Pin ist ein Ausgang
+  pinMode(ECHO_ABOVE, INPUT);     // Echo-Pin ist ein Eingang
+  pinMode(TRIGGER_BELOW, OUTPUT); // Trigger-Pin ist ein Ausgang
+  pinMode(ECHO_BELOW, INPUT);     // Echo-Pin ist ein Eingang
+
+  Serial.println("First round");
 }
 
 void loop()
