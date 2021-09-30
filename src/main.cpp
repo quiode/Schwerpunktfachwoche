@@ -6,19 +6,19 @@
 #define ECHO_BELOW 4
 #define TRIGGER_BELOW 5
 
-#define MAX_ARRAY_SIZE 255
+#define MAX_ARRAY_SIZE 200
 
-#define SENSITIVITY 2.5
+#define SENSITIVITY 1
 
 const String SENSOR_NAMES[2] = {"ABOVE", "BELOW"};
-int distances_top[MAX_ARRAY_SIZE];
-int distances_bottom[MAX_ARRAY_SIZE];
+float distances_top[MAX_ARRAY_SIZE];
+float distances_bottom[MAX_ARRAY_SIZE];
 int last_index_t = 0;
 int last_index_b = 0;
 long time_start = 0;
 long time_end = 0;
 
-int get_distance(String sensor_name)
+float get_distance(String sensor_name)
 {
   if (sensor_name == SENSOR_NAMES[0])
   {
@@ -28,7 +28,7 @@ int get_distance(String sensor_name)
     delay(10);
     digitalWrite(TRIGGER_ABOVE, LOW);
     long dauer = pulseIn(ECHO_ABOVE, HIGH);
-    int distance = (dauer / 2) * 0.03432;
+    float distance = (dauer / 2) * 0.03432;
     return distance;
   }
   else
@@ -39,7 +39,7 @@ int get_distance(String sensor_name)
     delay(10);
     digitalWrite(TRIGGER_BELOW, LOW);
     long dauer = pulseIn(ECHO_BELOW, HIGH);
-    int distance_b = (dauer / 2) * 0.03432;
+    float distance_b = (dauer / 2) * 0.03432;
     return distance_b;
   }
 }
@@ -47,6 +47,7 @@ int get_distance(String sensor_name)
 boolean pass_detection(String sensor_name)
 {
   // TODO: Different distances arrays for different sensors
+  //Serial.println("Checking for pass");
 
   if (sensor_name == SENSOR_NAMES[0])
   {
@@ -56,7 +57,7 @@ boolean pass_detection(String sensor_name)
     }
     distances_top[last_index_t++] = get_distance(sensor_name);
 
-    long sum = 0;
+    double sum = 0;
     short index = MAX_ARRAY_SIZE;
     for (int i = 0; i < MAX_ARRAY_SIZE; i++)
     {
@@ -67,13 +68,15 @@ boolean pass_detection(String sensor_name)
         break;
       }
     }
+
     /*
     Serial.print("Sum: ");
     Serial.println(sum);
     Serial.print("Index: ");
     Serial.println(index);
     */
-    int average = sum / index;
+
+    float average = sum / index;
 
     /*
     Serial.println("Average: ");
@@ -95,7 +98,7 @@ boolean pass_detection(String sensor_name)
     }
     distances_bottom[last_index_b++] = get_distance(sensor_name);
 
-    long sum = 0;
+    double sum = 0;
     short index = MAX_ARRAY_SIZE;
     for (int i = 0; i < MAX_ARRAY_SIZE; i++)
     {
@@ -107,13 +110,15 @@ boolean pass_detection(String sensor_name)
         break;
       }
     }
+
     /*
     Serial.print("Sum: ");
     Serial.println(sum);
     Serial.print("Index: ");
     Serial.println(index);
     */
-    int average = sum / index;
+
+    float average = sum / index;
 
     /*
     Serial.print("Average: ");
@@ -154,6 +159,7 @@ void setup()
 
 void loop()
 {
+  /*
   if (pass_detection(SENSOR_NAMES[0]))
   {
     time_start = millis();
@@ -169,4 +175,11 @@ void loop()
     Serial.print("Time difference: ");
     Serial.println(get_time_difference(time_end, time_start));
   }
+  */
+
+  Serial.print("TOP: ");
+  Serial.println(pass_detection(SENSOR_NAMES[0]));
+  Serial.print("BOTTOM: ");
+  Serial.println(pass_detection(SENSOR_NAMES[1]));
+  delay(500);
 }
