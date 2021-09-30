@@ -40,7 +40,7 @@ float get_distance(bool sensor)
     // end transmittion
     digitalWrite(TRIGGER_ABOVE, LOW);
     // gets the time until the pulse reaches the sensor
-    long duration = pulseIn(ECHO_ABOVE, HIGH);
+    duration = pulseIn(ECHO_ABOVE, HIGH);
   }
   else
   {
@@ -55,7 +55,7 @@ float get_distance(bool sensor)
     // end transmittion
     digitalWrite(TRIGGER_BELOW, LOW);
     // gets the time until the pulse reaches the sensor
-    long duration = pulseIn(ECHO_BELOW, HIGH);
+    duration = pulseIn(ECHO_BELOW, HIGH);
   }
   // calculates the distance pased on the ping duratio
   float distance = (duration / 2) * 0.03432;
