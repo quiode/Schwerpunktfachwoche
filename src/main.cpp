@@ -8,7 +8,7 @@
 
 #define MAX_ARRAY_SIZE 200
 
-#define SENSITIVITY 1
+#define SENSITIVITY 1.5
 
 #define SENSOR_TOP true
 #define SENSOR_BOTTOM false
@@ -57,11 +57,14 @@ boolean pass_detection(bool sensor)
   {
     last_index = 0;
   }
+
+  /*
   Serial.print("Last index: ");
   Serial.println(last_index);
 
   Serial.print("Distance: ");
   Serial.println(get_distance(sensor));
+  */
 
   distances[last_index++] = get_distance(sensor);
 
@@ -77,15 +80,19 @@ boolean pass_detection(bool sensor)
     }
   }
 
+  /*
   Serial.print("Sum: ");
   Serial.println(sum);
   Serial.print("Index: ");
   Serial.println(index);
+  */
 
   float average = sum / index;
 
+  /*
   Serial.print("Average: ");
   Serial.println(average);
+  */
 
   if (average + SENSITIVITY < distances[index - 1] || average - SENSITIVITY > distances[index - 1])
   {
@@ -98,7 +105,6 @@ boolean pass_detection(bool sensor)
 long get_time_difference(long timestamp_1, long timestamp_2)
 {
   return timestamp_1 - timestamp_2;
-  // TODO: implement math to calculate time (in milliseconds) difference
 }
 
 void setup()
@@ -117,29 +123,35 @@ void setup()
   pinMode(ECHO_BELOW, INPUT);     // Echo-Pin ist ein Eingang
 }
 
-void loop()
+void measure()
 {
-  /*
-  if (pass_detection(SENSOR_NAMES[0]))
+  if (pass_detection(SENSOR_TOP) && time_start == 0)
   {
     time_start = millis();
     Serial.println("Pass detected 1");
   }
-  if (pass_detection(SENSOR_NAMES[1]))
+  else if (pass_detection(SENSOR_BOTTOM) && time_start != 0)
   {
     time_end = millis();
     Serial.println("Pass detected 2");
-  }
-  if (time_start != 0 && time_end != 0)
-  {
     Serial.print("Time difference: ");
     Serial.println(get_time_difference(time_end, time_start));
+    delay(5000);
+    time_start = 0;
+    time_end = 0;
   }
-  */
+}
 
+void debug()
+{
   Serial.println("Sensor 1:");
   Serial.println(pass_detection(SENSOR_TOP));
   Serial.println("Sensor 2:");
   Serial.println(pass_detection(SENSOR_BOTTOM));
   delay(2500);
+}
+
+void loop()
+{
+  measure();
 }
