@@ -10,7 +10,9 @@
 
 #define SENSITIVITY 1
 
-const String SENSOR_NAMES[2] = {"ABOVE", "BELOW"};
+#define SENSOR_TOP true
+#define SENSOR_BOTTOM false
+
 float distances_top[MAX_ARRAY_SIZE];
 float distances_bottom[MAX_ARRAY_SIZE];
 int last_index_t = 0;
@@ -18,9 +20,9 @@ int last_index_b = 0;
 long time_start = 0;
 long time_end = 0;
 
-float get_distance(String sensor_name)
+float get_distance(bool sensor)
 {
-  if (sensor_name == SENSOR_NAMES[0])
+  if (sensor == SENSOR_TOP)
   {
     digitalWrite(TRIGGER_ABOVE, LOW);
     delay(5);
@@ -44,94 +46,52 @@ float get_distance(String sensor_name)
   }
 }
 
-boolean pass_detection(String sensor_name)
+boolean pass_detection(bool sensor)
 {
   // TODO: Different distances arrays for different sensors
   //Serial.println("Checking for pass");
+  float(&distances)[MAX_ARRAY_SIZE] = (sensor == SENSOR_TOP) ? distances_top : distances_bottom;
+  int &last_index = (sensor == SENSOR_TOP) ? last_index_t : last_index_b;
 
-  if (sensor_name == SENSOR_NAMES[0])
+  if (last_index == MAX_ARRAY_SIZE)
   {
-    if (last_index_t == MAX_ARRAY_SIZE)
+    last_index = 0;
+  }
+  Serial.print("Last index: ");
+  Serial.println(last_index);
+
+  Serial.print("Distance: ");
+  Serial.println(get_distance(sensor));
+
+  distances[last_index++] = get_distance(sensor);
+
+  double sum = 0;
+  short index = MAX_ARRAY_SIZE;
+  for (int i = 0; i < MAX_ARRAY_SIZE; i++)
+  {
+    sum += distances[i];
+    if (distances[i] == 0 && distances[i + 1] == 0)
     {
-      last_index_t = 0;
-    }
-    distances_top[last_index_t++] = get_distance(sensor_name);
-
-    double sum = 0;
-    short index = MAX_ARRAY_SIZE;
-    for (int i = 0; i < MAX_ARRAY_SIZE; i++)
-    {
-      sum += distances_top[i];
-      if (distances_top[i] == 0 && distances_top[i + 1] == 0)
-      {
-        index = i;
-        break;
-      }
-    }
-
-    /*
-    Serial.print("Sum: ");
-    Serial.println(sum);
-    Serial.print("Index: ");
-    Serial.println(index);
-    */
-
-    float average = sum / index;
-
-    /*
-    Serial.println("Average: ");
-    Serial.println(average);
-    Serial.print("Distance: ");
-    Serial.println(distances_top[index - 1]);
-    */
-
-    if (average + SENSITIVITY < distances_top[index - 1] || average - SENSITIVITY > distances_top[index - 1])
-    {
-      return true;
+      index = i;
+      break;
     }
   }
-  else if (sensor_name == SENSOR_NAMES[1])
+
+  Serial.print("Sum: ");
+  Serial.println(sum);
+  Serial.print("Index: ");
+  Serial.println(index);
+
+  float average = sum / index;
+
+  Serial.print("Average: ");
+  Serial.println(average);
+
+  if (average + SENSITIVITY < distances[index - 1] || average - SENSITIVITY > distances[index - 1])
   {
-    if (last_index_b == MAX_ARRAY_SIZE)
-    {
-      last_index_b = 0;
-    }
-    distances_bottom[last_index_b++] = get_distance(sensor_name);
-
-    double sum = 0;
-    short index = MAX_ARRAY_SIZE;
-    for (int i = 0; i < MAX_ARRAY_SIZE; i++)
-    {
-      sum += distances_bottom[i];
-      //Serial.println(distances_bottom[i]);
-      if (distances_bottom[i] == 0 && distances_bottom[i + 1] == 0)
-      {
-        index = i;
-        break;
-      }
-    }
-
-    /*
-    Serial.print("Sum: ");
-    Serial.println(sum);
-    Serial.print("Index: ");
-    Serial.println(index);
-    */
-
-    float average = sum / index;
-
-    /*
-    Serial.print("Average: ");
-    Serial.println(average);
-    Serial.print("Distance: ");
-    Serial.println(distances_bottom[index - 1]);
-    */
-
-    if (average + SENSITIVITY < distances_bottom[index - 1] || average - SENSITIVITY > distances_bottom[index - 1])
-    {
-      return true;
-    }
+    return true;
   }
+
   return false;
 }
 
@@ -177,9 +137,9 @@ void loop()
   }
   */
 
-  Serial.print("TOP: ");
-  Serial.println(pass_detection(SENSOR_NAMES[0]));
-  Serial.print("BOTTOM: ");
-  Serial.println(pass_detection(SENSOR_NAMES[1]));
-  delay(500);
+  Serial.println("Sensor 1:");
+  Serial.println(pass_detection(SENSOR_TOP));
+  Serial.println("Sensor 2:");
+  Serial.println(pass_detection(SENSOR_BOTTOM));
+  delay(2500);
 }
